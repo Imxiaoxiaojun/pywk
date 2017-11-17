@@ -11,6 +11,7 @@ requests.packages.urllib3.disable_warnings()
 
 class BlackWd(object):
     def __init__(self):
+        self.__cur_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         self.__city = CityCode()
         self.__session = requests.Session()
         self.__pre_dc_order_request_url = "https://kyfw.12306.cn/otn/confirmPassenger/initDc"
@@ -30,33 +31,38 @@ class BlackWd(object):
         self.__is_login = False
         self.__train_date = ""
         self.__back_train_date = ""
+        self.__ticket_dict = {}
 
     def __pre_order(self):
 
         # 验证用户有效性
         resp1 = self.__session.post(self.__check_user_request_url, data={"_json_att": ""}, verify=False).content
-
+        # from_name = raw_input("请输入出发地名称(默认上海) \n").strip()
+        # to_name = raw_input("请输入目的地名称(温州) \n").strip()
+        # train_date = raw_input("请输入乘车日期(默认当前日期) \n").strip()
+        self.__search_ticket()
+        print "请选择购票序号"
         # print resp1
-        data = {
-            "secretStr": "",
-            "train_date": "",
-            "back_train_date": "",
-            "tour_flag": "dc", # dc-单程,fc-返程
-            "purpose_codes": "",
-            "query_from_station_name": "",
-            "query_to_station_name": ""
-        }
-        resp2 = self.__session.post(self.__check_order_request_url, verify=False).content
-        print resp2
-        resp3 = self.__session.post(self.__pre_dc_order_request_url, verfy=False).content
-        print resp3
+        # data = {
+        #     "secretStr": "",
+        #     "train_date": "",
+        #     "back_train_date": "",
+        #     "tour_flag": "dc", ""  # dc-单程,fc-返程
+        #     "purpose_codes": "",
+        #     "query_from_station_name": "",
+        #     "query_to_station_name": ""
+        # }
+        # resp2 = self.__session.post(self.__check_order_request_url, verify=False).content
+        # print resp2
+        # resp3 = self.__session.post(self.__pre_dc_order_request_url, verfy=False).content
+        # print resp3
 
     def __get_captcha(self):
         data = self.__session.get(self.__captcha_url, verify=False).content
         with open('captcha.gif', 'wb') as fb:
             fb.write(data)
             fb.flush
-        fb.closed
+            fb.close
 
     def __check_captcha(self):
         self.__get_captcha()
@@ -115,17 +121,12 @@ class BlackWd(object):
                 print "用户名和密码不能为空！"
 
     def __search_ticket(self):
-        _from = raw_input("请输入起始站(默认上海) \n")
-        _to = raw_input("请输入终点站(默认温州) \n")
-        cur_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-        _train_date = raw_input("请输入乘车日期(默认当前日期"+cur_date+")" "\n ")
-
-        if _from.strip() == "":
-            _from = u"上海"
-        if _to.strip() == "":
-            _to = u"温州"
-        if _train_date.strip() == "":
-            _train_date = cur_date
+        _from = raw_input("请输入起始站(默认上海) \n").strip()
+        _to = raw_input("请输入终点站(默认温州) \n").strip()
+        _train_date = raw_input("请输入乘车日期(默认当前日期"+self.__cur_date+")" "\n ").strip()
+        _from = u"上海" if _from == "" else _from
+        _to = u"温州" if _to == "" else _to
+        _train_date = self.__cur_date if _train_date == "" else _train_date
         if _from.strip() != "" and _to.strip() != "" and _train_date.strip() != "":
             try:
                 from_code = self.__city.get_city_code(_from.strip())
@@ -151,11 +152,11 @@ class BlackWd(object):
                     url = self.__search_url2 + "leftTicketDTO.train_date=" + _train_date + "&leftTicketDTO.from_station=" \
                         + from_code + "&leftTicketDTO.to_station=" + to_code + "&purpose_codes=ADULT"
                     data = requests.get(url, verify=False).content
-                self.__format_ticket(data)
+                self.__get_ticket_list(data)
             except Exception, e:
-                print "系统错误",e
+                print "系统错误", e
 
-    def __format_ticket(self, resp):
+    def __get_ticket_list(self, resp):
         if resp is None:
             return
         result = json.loads(resp)
@@ -166,12 +167,17 @@ class BlackWd(object):
         tickets = data["result"]
         # 车次(4) |起始站(5) |终点站(6) |出发站(7) |到达站(8) |出发时间(9) |到达时间(10) |用时(11) |特等座(33)
         # |一等座(32) |二等座（31） |高级软卧(22) |软卧(24) |动卧(34) |硬卧(29) |软座 |硬座(30) |无座(27)"
-        print "车次 |起始站 |终点站 |出发站 |到达站 |出发时间 |到达时间 |用时 |特等座 |一等座 |二等座 |高级软卧 |软卧 |动卧 |硬卧 |硬座 |无座"
+        print "序号 |车次(状态) |起始站 |终点站 |出发站 |到达站 |出发时间 |到达时间 |用时 |特等座 |一等座 |二等座 |高级软卧 |软卧 |动卧 |硬卧 |硬座 |无座"
+        index = 0
+        self.__ticket_dict.clear()
         for ticket in tickets:
+            index = index+1
             ticket_array = re.split("\|", ticket)
+            self.__ticket_dict[index] = ticket_array
+            status = "(有票)"
             if ticket_array[0].strip() == "":
-                continue
-            print ticket_array[3], " |", self.__city.get_city_name(ticket_array[4]), " |", \
+                status = "(无票)"
+            print index, "|", str(ticket_array[3])+status, " |", self.__city.get_city_name(ticket_array[4]), " |", \
                 self.__city.get_city_name(ticket_array[5]), "|", self.__city.get_city_name(
                 ticket_array[6]), " |", \
                 self.__city.get_city_name(ticket_array[7]), " |", ticket_array[8], " |", ticket_array[9], " |", \
