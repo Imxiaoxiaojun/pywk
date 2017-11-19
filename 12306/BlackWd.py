@@ -6,11 +6,15 @@ import re
 import time
 from CityCode import *
 import random
+import urllib
+import base64
 requests.packages.urllib3.disable_warnings()
 
 
 class BlackWd(object):
     def __init__(self):
+        self.__initMyInfo = "https://kyfw.12306.cn/otn/modifyUser/initQueryUserInfo"
+        self.__initMyself = "https://kyfw.12306.cn/otn/index/initMy12306"
         self.__cur_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         self.__city = CityCode()
         self.__session = requests.Session()
@@ -32,30 +36,54 @@ class BlackWd(object):
         self.__train_date = ""
         self.__back_train_date = ""
         self.__ticket_dict = {}
+        self.__friend_dict = {}
 
     def __pre_order(self):
-
+        self.__get_friends()
+        passenger = raw_input("请输入乘车人序号 \n").strip()
+        try:
+            passenger = int(passenger)
+            passenger = self.__friend_dict[passenger]
+        except:
+            print "指令错误"
+            return
+        if passenger is None:
+            print "指令错误"
+            return
+        # if self.__friend_dict[__passenger_dict]
         # 验证用户有效性
+        # self.__session.post(self.__get_friends_pre_url, {"appid": "otn"}, verify=False)
         resp1 = self.__session.post(self.__check_user_request_url, data={"_json_att": ""}, verify=False).content
+        print resp1
+
         # from_name = raw_input("请输入出发地名称(默认上海) \n").strip()
         # to_name = raw_input("请输入目的地名称(温州) \n").strip()
         # train_date = raw_input("请输入乘车日期(默认当前日期) \n").strip()
         self.__search_ticket()
-        print "请选择购票序号"
-        # print resp1
-        # data = {
-        #     "secretStr": "",
-        #     "train_date": "",
-        #     "back_train_date": "",
-        #     "tour_flag": "dc", ""  # dc-单程,fc-返程
-        #     "purpose_codes": "",
-        #     "query_from_station_name": "",
-        #     "query_to_station_name": ""
-        # }
-        # resp2 = self.__session.post(self.__check_order_request_url, verify=False).content
-        # print resp2
-        # resp3 = self.__session.post(self.__pre_dc_order_request_url, verfy=False).content
-        # print resp3
+        ticket = raw_input("请选择列车序号 \n").strip()
+        try:
+            ticket = int(ticket)
+            ticket = self.__ticket_dict[ticket]
+        except:
+            print "指令错误"
+            return
+        if ticket is None:
+            print "指令错误"
+            return
+        data = {
+            "secretStr": urllib.unquote(ticket[0]),
+            # "train_date": ticket[13],
+            "train_date": self.__cur_date,
+            "back_train_date": self.__cur_date,
+            "tour_flag": "dc", ""  # dc-单程,fc-返程
+            "purpose_codes": "ADULT",
+            "query_from_station_name": self.__city.get_city_name(ticket[6]),
+            "query_to_station_name": self.__city.get_city_name(ticket[7])
+        }
+        resp2 = self.__session.post(self.__check_order_request_url, data=data, verify=False).content
+        print resp2
+        resp3 = self.__session.post(self.__pre_dc_order_request_url, verify=False).content
+        print resp3
 
     def __get_captcha(self):
         data = self.__session.get(self.__captcha_url, verify=False).content
@@ -204,9 +232,12 @@ class BlackWd(object):
         try:
             # friends = friends.decode("utf-8")
             friends = result[0].replace("\'", "\"")
+            index = 0
             for friend in json.loads(friends[:-1]):
-                print "姓名| 证件类型| 证件号码| 手机号码| 旅客类型"
-                print friend["passenger_name"], "|", friend["passenger_id_type_name"], "|", friend[
+                index = index + 1
+                self.__friend_dict[index] = friend
+                print "序号| 姓名| 证件类型| 证件号码| 手机号码| 旅客类型"
+                print index, "|", friend["passenger_name"], "|", friend["passenger_id_type_name"], "|", friend[
                     "passenger_id_no"], \
                     "|", friend["mobile_no"], "|", friend["passenger_type_name"]
         except Exception, e:
@@ -237,10 +268,11 @@ class BlackWd(object):
 
 
 if __name__ == "__main__":
+    # str = "wdtmygdMlCq87V5SFJkr5HWUfeWJ8rLHQuOXHWDFSQmwqwxPKbkwTV6jVRMc4Yzn0y607WSPWQFV%0An%2FQhOerGByY%2BPmzmMz8g5GMjvcUGFSTvXFPy4%2B5x4Iv6fH0Vcg8dRb%2BxUyIXOgq5UwgPbL6j%2Fu2f%0AGX37eST16fxztZ22ayZqjIEuLuhMCYS8G%2BpWegUUfd%2F5L5Onq6ZaDlL9c6QRgpU3fRtDdPUiCY9z%0AdXxuL2CfB6B%2F8fFPfg%3D%3D"
+    # print urllib.unquote(str)
     top = BlackWd()
     top.main()
     # cur_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
     # _train_date = raw_input("请输入乘车日期(默认当前日期" + cur_date + ")" "\n ")
-
 
 
