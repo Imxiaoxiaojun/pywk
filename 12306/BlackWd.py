@@ -18,6 +18,7 @@ class BlackWd(object):
         self.__cur_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
         self.__city = CityCode()
         self.__session = requests.Session()
+        self.__check_order_info = "https://kyfw.12306.cn/otn/confirmPassenger/checkOrderInfo"
         self.__pre_dc_order_request_url = "https://kyfw.12306.cn/otn/confirmPassenger/initDc"
         self.__check_user_request_url = "https://kyfw.12306.cn/otn/login/checkUser"
         self.__check_order_request_url = "https://kyfw.12306.cn/otn/leftTicket/submitOrderRequest"
@@ -81,9 +82,41 @@ class BlackWd(object):
             "query_to_station_name": self.__city.get_city_name(ticket[7])
         }
         resp2 = self.__session.post(self.__check_order_request_url, data=data, verify=False).content
-        print resp2
+        # print resp2
         resp3 = self.__session.post(self.__pre_dc_order_request_url, verify=False).content
-        print resp3
+        # print resp3
+        reg = re.compile(r"orderRequestDTO=(.*)")
+        order_request_dto = reg.findall(resp3)
+        if order_request_dto is not None:
+            try:
+                order_request_dto = order_request_dto[0].replace("\'", "\"")[:-1]
+                order_request_dto = json.loads(order_request_dto)
+            except Exception, e:
+                print e
+                print order_request_dto
+                return
+        print order_request_dto
+
+        reg = re.compile(r"ticketInfoForPassengerForm=(.*)")
+        passenger_form = reg.findall(resp3)
+        if passenger_form is not None:
+            try:
+                passenger_form = passenger_form[0].replace("\'", "\"")[:-1]
+                passenger_form = json.loads(passenger_form)
+            except Exception, e:
+                print e
+                print passenger_form
+                return
+        print passenger_form
+
+        data = {
+            "cancel_flag": "2",
+            "bed_level_order_num": "000000000000000000000000000000",
+            "passengerTicketStr": "",
+            "oldPassengerStr": "",
+            "tour_flag": "",
+            "randCode": ""
+        }
 
     def __get_captcha(self):
         data = self.__session.get(self.__captcha_url, verify=False).content
@@ -125,10 +158,10 @@ class BlackWd(object):
             pass_word = raw_input("请输入密码 \n")
             if user_name.strip() != "" and pass_word.strip() != "":
                 data = {
-                    "username": "337433736@qq.com",
-                    "password": "zhuyajun0409",
-                    #   "username": "15122039381",
-                    #   "password": "zhangguangfu985663607",
+                    # "username": "337433736@qq.com",
+                    # "password": "zhuyajun0409",
+                      "username": "15122039381",
+                      "password": "zhangguangfu985663607",
                     #   "username": user_name,
                     #   "password": pass_word,
                     #
