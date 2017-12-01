@@ -108,7 +108,7 @@ class BlackWd(object):
                 print passenger_form
                 return
         print passenger_form
-
+        print passenger
         data = {
             "cancel_flag": "2",
             "bed_level_order_num": "000000000000000000000000000000",
@@ -116,6 +116,13 @@ class BlackWd(object):
             "oldPassengerStr": "",
             "tour_flag": "",
             "randCode": ""
+
+            # cancel_flag:2
+            # bed_level_order_num:000000000000000000000000000000
+            # 座位编号,0,票类型,乘客名,证件类型,证件号,手机号码,保存常用联系人(Y或N)
+            # passengerTicketStr:1,0,1,朱亚军,1,330329199104090554,15022515510,N
+            # oldPassengerStr:朱亚军,1,330329199104090554,1_
+            # tour_flag:dc
         }
 
     def __get_captcha(self):
@@ -303,9 +310,10 @@ class BlackWd(object):
 if __name__ == "__main__":
     # str = "wdtmygdMlCq87V5SFJkr5HWUfeWJ8rLHQuOXHWDFSQmwqwxPKbkwTV6jVRMc4Yzn0y607WSPWQFV%0An%2FQhOerGByY%2BPmzmMz8g5GMjvcUGFSTvXFPy4%2B5x4Iv6fH0Vcg8dRb%2BxUyIXOgq5UwgPbL6j%2Fu2f%0AGX37eST16fxztZ22ayZqjIEuLuhMCYS8G%2BpWegUUfd%2F5L5Onq6ZaDlL9c6QRgpU3fRtDdPUiCY9z%0AdXxuL2CfB6B%2F8fFPfg%3D%3D"
     # print urllib.unquote(str)
-    top = BlackWd()
-    top.main()
+    # top = BlackWd()
+    # top.main()
     # cur_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
     # _train_date = raw_input("请输入乘车日期(默认当前日期" + cur_date + ")" "\n ")
+    print json.dump("{name:aa,age:1}")
 
 
