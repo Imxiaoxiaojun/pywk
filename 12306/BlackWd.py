@@ -107,7 +107,7 @@ class BlackWd(object):
                 print e
                 print passenger_form
                 return
-        print passenger_form
+        print passenger_form['limitBuySeatTicketDTO']   # 座位类型 1-二等座
         print passenger
         data = {
             "cancel_flag": "2",
@@ -310,10 +310,10 @@ class BlackWd(object):
 if __name__ == "__main__":
     # str = "wdtmygdMlCq87V5SFJkr5HWUfeWJ8rLHQuOXHWDFSQmwqwxPKbkwTV6jVRMc4Yzn0y607WSPWQFV%0An%2FQhOerGByY%2BPmzmMz8g5GMjvcUGFSTvXFPy4%2B5x4Iv6fH0Vcg8dRb%2BxUyIXOgq5UwgPbL6j%2Fu2f%0AGX37eST16fxztZ22ayZqjIEuLuhMCYS8G%2BpWegUUfd%2F5L5Onq6ZaDlL9c6QRgpU3fRtDdPUiCY9z%0AdXxuL2CfB6B%2F8fFPfg%3D%3D"
     # print urllib.unquote(str)
-    # top = BlackWd()
-    # top.main()
+    top = BlackWd()
+    top.main()
     # cur_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
     # _train_date = raw_input("请输入乘车日期(默认当前日期" + cur_date + ")" "\n ")
-    print json.dump("{name:aa,age:1}")
+    # print json.dump("{name:aa,age:1}")
 
 
