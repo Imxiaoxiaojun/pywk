@@ -53,7 +53,8 @@ ROBOTSTXT_OBEY = True
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-   'ctbook.middlewares.CtbookDownloaderMiddleware': 543,
+   # 'ctbook.middlewares.CtbookDownloaderMiddleware': 543,
+   # 'ctbook.middlewares.CtbookSpiderMiddleware': 100,
    'ctbook.user_agent_middleware.RandomUserAgentMiddleware': 400,
    'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware': None,
 }
@@ -94,7 +95,7 @@ FEED_EXPORT_ENCODING='UTF8'
 
 #Mysql数据库的配置信息
 MYSQL_HOST = '127.0.0.1'
-MYSQL_DBNAME = 'slife'    #数据库名字
+MYSQL_DBNAME = 'pywk'    #数据库名字
 MYSQL_USER = 'manage'      #数据库账号
 MYSQL_PASSWORD = 'spdb1234'      #数据库密码
 

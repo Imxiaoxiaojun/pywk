@@ -30,7 +30,7 @@ class CtbookPipeline:
 
     def process_item(self, item, spider):
         # 定义sql语句
-        sql = "INSERT INTO `ct_book` (`bk_desc`, `bk_img`, `bk_name`, `bk_url`) VALUES (%s,%s,%s,%s);"
+        sql = "INSERT INTO `ct_book` (`bk_hot_news`, `bk_img`, `bk_name`, `bk_url`) VALUES (%s,%s,%s,%s);"
         print("sql = ", sql)
         params=(item['bkDesc'], item['bkImg'], item['bkName'], item['bkUrl'])
         # 执行sql语句

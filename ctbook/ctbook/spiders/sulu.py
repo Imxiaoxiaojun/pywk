@@ -4,9 +4,11 @@ from ctbook.items import CtookItem
 from ctbook.dbHelper import DBHelper
 from pydispatch import dispatcher
 from scrapy import signals
+from scrapy.cmdline import execute
+
 
 class SuluSpider(scrapy.Spider):
-    name = 'sulu'
+    name = 'book_list'
     count = 0
     url_format = "https://www.lbsulu.com/search/12_24_all_all_all_all_onclick_{}.html"
     allowed_domains = ['www.lbsulu.com']
@@ -24,11 +26,13 @@ class SuluSpider(scrapy.Spider):
         self.db = DBHelper()
         self.init_urls()
         dispatcher.connect(self.spider_closed, signals.spider_closed)
+
     def spider_closed(self, spider):
         print('spider_closed count=',self.count)
         sql = "update `ct_job` set `offset` = {} where `job_type` = 1;".format(self.count)
         self.db.update(sql)
         pass
+
     def init_urls(self):
         sql = "SELECT offset FROM ct_job WHERE job_type = 1"
         result = self.db.query(sql)
@@ -70,3 +74,7 @@ class SuluSpider(scrapy.Spider):
         self.count = self.count + 1
         print("count = ", self.count)
         yield scrapy.Request(next_page_url, callback=self.parse)
+
+
+if __name__ == '__main__':
+    execute("scrapy crawl book_list".split())

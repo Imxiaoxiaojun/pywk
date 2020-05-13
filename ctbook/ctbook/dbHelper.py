@@ -132,6 +132,7 @@ class TestDBHelper:
         sql = "SELECT offset FROM ct_job WHERE job_type = 1"
         print(self.dbHelper.query(sql))
 
-if __name__=="__main__":
-    testDBHelper=TestDBHelper()
+
+if __name__ == "__main__":
+    testDBHelper = TestDBHelper()
     testDBHelper.testquery()

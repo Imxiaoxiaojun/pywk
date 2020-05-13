@@ -1,5 +1,6 @@
 import random
 
+
 class RandomUserAgentMiddleware:
     def __init__(self):
         self.USER_AGENT_LIST=[

@@ -4,13 +4,22 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-
+import json
 from scrapy import signals
+import requests
+import random
+# from scrapy.contrib.downloadermiddleware.httpproxy import HttpProxyMiddleware
+
 
 class CtbookSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
     # passed objects.
+    def __init__(self):
+        self.proxy_url = 'http://http.tiqu.alicdns.com/getip3?num=20&type=2&pro=&city=0&yys=0&port=1' \
+                         '&pack=97555&ts=0&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=&gm=4'
+        self.proxy_list = self.init_proxy()
+
     @classmethod
     def from_crawler(cls, crawler):
         # This method is used by Scrapy to create your spiders.
@@ -18,6 +27,42 @@ class CtbookSpiderMiddleware:
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
         return s
 
+    def process_request(self, request, spider):
+        proxy = self.get_random_proxy()
+        if proxy:
+            request.meta['proxy'] = 'https://{proxy}'.format(proxy=proxy)
+        print("after process_request")
+
+    def process_response(self, request, response, spider):
+        if response.status != 200:
+            print("again response ip:")
+            request.meta['proxy'] = 'https://{proxy}'.format(proxy=self.get_random_proxy())
+            # return request
+        print("after process_response")
+        return response
+
+    def get_random_proxy(self):
+        address = random.choice(self.proxy_list)
+        proxy = '{}:{}'.format(address.get('ip'), address.get('port'))
+        print('get proxy', proxy)
+        return proxy
+
+    def init_proxy(self):
+        proxy_list = []
+        try:
+            response = requests.get(self.proxy_url)
+            if response.status_code == 200:
+                proxy_list = json.loads(response.text)['data']
+                # proxy = '{}:{}'.format(p.get('ip'), p.get('port'))
+                # print('get proxy', proxy)
+                # ip = {"http": "http://" + proxy, "https": "https://" + proxy}
+                # r = requests.get("http://www.baidu.com", proxies=ip, timeout=4)
+                # if r.status_code == 200:
+                # return proxy
+                print(self.proxy_list)
+        except Exception as e:
+            print('get proxy again ...', e)
+        return proxy_list
 
     def process_spider_input(self, response, spider):
         # Called for each response that goes through the spider
@@ -102,3 +147,8 @@ class CtbookDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+if __name__ == '__main__':
+    c = CtbookSpiderMiddleware()
+    print(c.get_random_proxy())
